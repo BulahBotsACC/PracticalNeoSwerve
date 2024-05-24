@@ -1,9 +1,8 @@
 package frc.robot.subsystems.swerve;
 
-import com.ctre.phoenix.sensors.AbsoluteSensorRange;
-import com.ctre.phoenix.sensors.CANCoderConfiguration;
-import com.ctre.phoenix.sensors.SensorInitializationStrategy;
-import com.ctre.phoenix.sensors.SensorTimeBase;
+import com.ctre.phoenix6.configs.CANcoderConfiguration;
+import com.ctre.phoenix6.signals.AbsoluteSensorRangeValue;
+import com.ctre.phoenix6.signals.SensorDirectionValue;
 import com.revrobotics.CANSparkBase.IdleMode;
 
 import edu.wpi.first.math.geometry.Translation2d;
@@ -15,7 +14,7 @@ import frc.lib.util.swerveUtil.COTSFalconSwerveConstants;
 public class SwerveConfig 
 {
     
-    public CANCoderConfiguration canCoderConfig;
+    public CANcoderConfiguration canCoderConfig;
 
     //
     public static final IdleMode driveIdleMode = IdleMode.kBrake;
@@ -27,11 +26,11 @@ public class SwerveConfig
     public static final boolean invertGyro = false; // Always ensure Gyro is CCW+ CW-
 
     public static final COTSFalconSwerveConstants chosenModule =  
-        COTSFalconSwerveConstants.SDSMK4i(COTSFalconSwerveConstants.driveGearRatios.SDSMK4i_L2);
+        COTSFalconSwerveConstants.SDSMK4(COTSFalconSwerveConstants.driveGearRatios.SDSMK4_L3);
 
     /* Drivetrain Constants */
-    public static final double trackWidth = Units.inchesToMeters(23.75); 
-    public static final double wheelBase = Units.inchesToMeters(23.75); 
+    public static final double trackWidth = Units.inchesToMeters(19); 
+    public static final double wheelBase = Units.inchesToMeters(19); 
     public static final double wheelCircumference = chosenModule.wheelCircumference;
 
 
@@ -99,9 +98,9 @@ public class SwerveConfig
 
     /* Swerve Profiling Values */
     /** Meters per Second */
-    public static final double maxSpeed = 4.0;
+    public static final double maxSpeed = 4.5;
     /** Radians per Second */
-    public static final double maxAngularVelocity = 5.0; //max 10 or.....
+    public static final double maxAngularVelocity = 4; //max 10 or.....
    
 
  
@@ -110,11 +109,10 @@ public class SwerveConfig
 
     public SwerveConfig()
     {
-        canCoderConfig = new CANCoderConfiguration();
-        canCoderConfig.absoluteSensorRange = AbsoluteSensorRange.Unsigned_0_to_360;
-        canCoderConfig.sensorDirection = canCoderInvert;
-        canCoderConfig.initializationStrategy = SensorInitializationStrategy.BootToAbsolutePosition;
-        canCoderConfig.sensorTimeBase = SensorTimeBase.PerSecond;
+        canCoderConfig = new CANcoderConfiguration();
+        canCoderConfig.MagnetSensor.AbsoluteSensorRange = AbsoluteSensorRangeValue.Unsigned_0To1;
+        //TODO: Multiply Any Time Cancoder Value is Called by 360
+        canCoderConfig.MagnetSensor.SensorDirection = SensorDirectionValue.CounterClockwise_Positive;
     }
 }
 
