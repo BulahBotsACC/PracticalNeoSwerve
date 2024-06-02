@@ -76,7 +76,7 @@ public class Swerve extends SubsystemBase {
             () -> {return getPose();},
             (Pose2d pose) -> {resetOdometry(pose);},
             () -> {return currentChassisSpeeds;},
-            (ChassisSpeeds speeds) -> {drive(new Translation2d(speeds.vxMetersPerSecond,speeds.vyMetersPerSecond), speeds.omegaRadiansPerSecond, false, true);},
+            (ChassisSpeeds speeds) -> {drive(new Translation2d(speeds.vxMetersPerSecond,speeds.vyMetersPerSecond), speeds.omegaRadiansPerSecond, false, false);},
             new HolonomicPathFollowerConfig(new PIDConstants(5,0, 0), new PIDConstants(5,0, 0), SwerveConfig.maxSpeed, Math.sqrt(Math.pow(SwerveConfig.wheelBase,2)+Math.pow(SwerveConfig.trackWidth, 2)), new ReplanningConfig()),
             () -> {return DriverStation.getAlliance().get() == DriverStation.Alliance.Red;},
             this
