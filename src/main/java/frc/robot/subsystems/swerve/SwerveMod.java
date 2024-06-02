@@ -1,10 +1,12 @@
 
 package frc.robot.subsystems.swerve;
 
+import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj.RobotController;
 import frc.lib.util.swerveUtil.CTREModuleState;
 import frc.lib.util.swerveUtil.RevSwerveModuleConstants;
 
@@ -20,7 +22,7 @@ import com.revrobotics.CANSparkLowLevel.MotorType;
 /**
  * a Swerve Modules using REV Robotics motor controllers and CTRE CANcoder absolute encoders.
  */
-public class SwerveMod implements SwerveModule
+public class SwerveMod
 {
     public int moduleNumber;
     private Rotation2d angleOffset;
@@ -31,6 +33,7 @@ public class SwerveMod implements SwerveModule
     private CANcoder angleEncoder;
     private RelativeEncoder relAngleEncoder;
     private RelativeEncoder relDriveEncoder;
+    private PIDController driveController;
 
 
     public SwerveMod(int moduleNumber, RevSwerveModuleConstants moduleConstants)
@@ -104,12 +107,7 @@ public class SwerveMod implements SwerveModule
     private void configDriveMotor()
     {        
         mDriveMotor.restoreFactoryDefaults();
-        SparkPIDController controller = mDriveMotor.getPIDController();
-        controller.setP(SwerveConfig.driveKP,0);
-        controller.setI(SwerveConfig.driveKI,0);
-        controller.setD(SwerveConfig.driveKD,0);
-        controller.setFF(SwerveConfig.driveKF,0);
-        controller.setOutputRange(-SwerveConfig.drivePower, SwerveConfig.drivePower);
+        driveController = new PIDController(SwerveConfig.driveKP, SwerveConfig.driveKI, SwerveConfig.driveKD);
         mDriveMotor.setSmartCurrentLimit(SwerveConfig.driveContinuousCurrentLimit);
         mDriveMotor.setInverted(SwerveConfig.driveMotorInvert);
         mDriveMotor.setIdleMode(SwerveConfig.driveIdleMode); 
@@ -119,7 +117,22 @@ public class SwerveMod implements SwerveModule
        
     }
 
+    public void setVoltageStraight(double voltage) {
+        mDriveMotor.setVoltage(voltage);
+        setAngle(new SwerveModuleState(0, Rotation2d.fromDegrees(0))); 
+    }
 
+    public double getVoltageStraight() {
+        return mDriveMotor.getAppliedOutput() * RobotController.getBatteryVoltage();
+    }
+
+    public double getSysIDRelativePosition() {
+        return relDriveEncoder.getPosition();
+    }
+
+    public double getSysIDRelativeVelocity() {
+        return relDriveEncoder.getVelocity();
+    }
 
     public void setDesiredState(SwerveModuleState desiredState, boolean isOpenLoop)
     {
@@ -153,9 +166,12 @@ public class SwerveMod implements SwerveModule
  
         double velocity = desiredState.speedMetersPerSecond;
         
-        SparkPIDController controller = mDriveMotor.getPIDController();
-        controller.setReference(velocity, ControlType.kVelocity, 0);
-        
+        double outputVoltage = Math.abs(velocity) * SwerveConfig.driveKV + SwerveConfig.driveKS;
+        double pidOutput = driveController.calculate(relDriveEncoder.getVelocity(), velocity);
+        double outputPercentage = (outputVoltage/RobotController.getBatteryVoltage() * (velocity < 0 ? -1 : 1)) + pidOutput;
+        outputPercentage = Math.min(Math.max(outputPercentage, -1.0), 1.0);
+
+        mDriveMotor.set(outputPercentage);
     }
 
     private void setAngle(SwerveModuleState desiredState)
