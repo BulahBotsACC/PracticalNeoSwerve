@@ -1,5 +1,9 @@
 package frc.robot;
 
+import com.pathplanner.lib.auto.AutoBuilder;
+import com.pathplanner.lib.auto.NamedCommands;
+import com.pathplanner.lib.path.PathPlannerPath;
+
 import edu.wpi.first.wpilibj.GenericHID;
 import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.XboxController;
@@ -11,6 +15,7 @@ import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.button.JoystickButton;
 import edu.wpi.first.wpilibj2.command.button.POVButton;
 import frc.robot.commands.*;
+import frc.robot.subsystems.Mechanisms.Intake;
 import frc.robot.subsystems.swerve.Swerve;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 
@@ -42,6 +47,7 @@ public class RobotContainer {
 
     /* Subsystems */
     private final Swerve s_Swerve = new Swerve();
+    private final Intake s_Intake = new Intake();
 
     // Auton Selector
     private SendableChooser<Command> autonSelector;
@@ -67,8 +73,17 @@ public class RobotContainer {
         // Configure the button bindings
         configureButtonBindings();
 
+        //Register named commands
+        NamedCommands.registerCommand("IntakeOn", s_Intake.On());
+        NamedCommands.registerCommand("IntakeOff", s_Intake.Off());
+
+        // Create Pathplanner Autos
+        PathPlannerPath DBAP = PathPlannerPath.fromChoreoTrajectory("NewPath");
+        Command DBAPCommand = AutoBuilder.followPath(DBAP);
+
         // Auton Selector
         autonSelector.addOption("calibrate swerve module FF Constants", Commands.sequence(s_Swerve.sysIdDynamic(SysIdRoutine.Direction.kForward), Commands.waitSeconds(1), s_Swerve.sysIdDynamic(SysIdRoutine.Direction.kReverse), Commands.waitSeconds(1), s_Swerve.sysIdQuasistatic(SysIdRoutine.Direction.kForward), Commands.waitSeconds(1), s_Swerve.sysIdQuasistatic(SysIdRoutine.Direction.kReverse)));
+        autonSelector.addOption("Drive Back and Pick Up", DBAPCommand);
         SmartDashboard.putData("Auton Selector", autonSelector);
     }
 

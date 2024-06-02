@@ -7,6 +7,12 @@ import edu.wpi.first.math.numbers.N3;
 
 public final class Constants {
 
+    public static final class IntakeConstants{
+        public static final int TopMotorID = 0;
+        public static final int BottomMotorID = 0;
+        public static final double IntakeSpeed = 0.8;
+    }
+
     public static final double stickDeadband = 0.1;
    
     public static final class PoseEstimator{
