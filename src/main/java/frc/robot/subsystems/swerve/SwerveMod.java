@@ -7,6 +7,7 @@ import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.RobotController;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import frc.lib.util.swerveUtil.CTREModuleState;
 import frc.lib.util.swerveUtil.RevSwerveModuleConstants;
 
@@ -51,7 +52,7 @@ public class SwerveMod
         configDriveMotor();
 
          /* Angle Encoder Config */
-        angleEncoder = new CANcoder(moduleConstants.cancoderID, "canivore");
+        angleEncoder = new CANcoder(moduleConstants.cancoderID);
         configEncoders();
 
 
@@ -119,7 +120,7 @@ public class SwerveMod
 
     public void setVoltageStraight(double voltage) {
         mDriveMotor.setVoltage(voltage);
-        setAngle(new SwerveModuleState(0, Rotation2d.fromDegrees(0))); 
+        setAngle(new SwerveModuleState(0, Rotation2d.fromDegrees(0)), true); 
     }
 
     public double getVoltageStraight() {
@@ -140,7 +141,7 @@ public class SwerveMod
         
         // CTREModuleState functions for any motor type.
         desiredState = CTREModuleState.optimize(desiredState, getState().angle); 
-        setAngle(desiredState);
+        setAngle(desiredState, false);
         setSpeed(desiredState, isOpenLoop);
 
         if(mDriveMotor.getFault(FaultID.kSensorFault))
@@ -154,6 +155,8 @@ public class SwerveMod
         }
     }
 
+    private double oldVelocity = 0;
+
     private void setSpeed(SwerveModuleState desiredState, boolean isOpenLoop)
     {
        
@@ -165,18 +168,25 @@ public class SwerveMod
         }
  
         double velocity = desiredState.speedMetersPerSecond;
+
+        SmartDashboard.putNumber("Goal Velocity" + moduleNumber, velocity);
+        SmartDashboard.putNumber("Acceleration" + moduleNumber, (velocity - oldVelocity)/0.02);
         
-        double outputVoltage = Math.abs(velocity) * SwerveConfig.driveKV + SwerveConfig.driveKS;
+        double outputVoltage = Math.abs(velocity) * SwerveConfig.driveKV + SwerveConfig.driveKS + SwerveConfig.driveKA * (oldVelocity/0.02);
         double pidOutput = driveController.calculate(relDriveEncoder.getVelocity(), velocity);
         double outputPercentage = (outputVoltage/RobotController.getBatteryVoltage() * (velocity < 0 ? -1 : 1)) + pidOutput;
         outputPercentage = Math.min(Math.max(outputPercentage, -1.0), 1.0);
 
+        oldVelocity = relDriveEncoder.getVelocity();
+
+        SmartDashboard.putNumber("Actual Velocity" + moduleNumber, oldVelocity);
+
         mDriveMotor.set(outputPercentage);
     }
 
-    private void setAngle(SwerveModuleState desiredState)
+    private void setAngle(SwerveModuleState desiredState, boolean testing)
     {
-        if(Math.abs(desiredState.speedMetersPerSecond) <= (SwerveConfig.maxSpeed * 0.01)) 
+        if(Math.abs(desiredState.speedMetersPerSecond) <= (SwerveConfig.maxSpeed * 0.01) && !testing) 
         {
             mAngleMotor.stopMotor();
             return;

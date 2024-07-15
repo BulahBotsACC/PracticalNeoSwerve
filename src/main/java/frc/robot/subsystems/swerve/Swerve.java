@@ -43,7 +43,7 @@ public class Swerve extends SubsystemBase {
     public SwerveDriveOdometry swerveOdometry;
     public SwerveMod[] mSwerveMods;
     public Pigeon2 gyro;
-    public ChassisSpeeds currentChassisSpeeds;
+    public ChassisSpeeds currentChassisSpeeds = new ChassisSpeeds(0,0,0);
 
     // Mutable holder for unit-safe voltage values, persisted to avoid reallocation.
     private final MutableMeasure<Voltage> m_appliedVoltage = mutable(Volts.of(0));
@@ -56,7 +56,7 @@ public class Swerve extends SubsystemBase {
 
     public Swerve() {
         
-        gyro = new Pigeon2(SwerveConstants.REV.pigeonID, "canivore");
+        gyro = new Pigeon2(SwerveConstants.REV.pigeonID);
         gyro.getConfigurator().apply(new Pigeon2Configuration());
         
      
@@ -77,7 +77,7 @@ public class Swerve extends SubsystemBase {
             (Pose2d pose) -> {resetOdometry(pose);},
             () -> {return currentChassisSpeeds;},
             (ChassisSpeeds speeds) -> {drive(new Translation2d(speeds.vxMetersPerSecond,speeds.vyMetersPerSecond), speeds.omegaRadiansPerSecond, false, false);},
-            new HolonomicPathFollowerConfig(new PIDConstants(5,0, 0), new PIDConstants(5,0, 0), SwerveConfig.maxSpeed, Math.sqrt(Math.pow(SwerveConfig.wheelBase,2)+Math.pow(SwerveConfig.trackWidth, 2)), new ReplanningConfig()),
+            new HolonomicPathFollowerConfig(new PIDConstants(0,0, 0), new PIDConstants(0,0, 0), SwerveConfig.maxSpeed, Math.sqrt(Math.pow(SwerveConfig.wheelBase,2)+Math.pow(SwerveConfig.trackWidth, 2)), new ReplanningConfig()),
             () -> {return DriverStation.getAlliance().get() == DriverStation.Alliance.Red;},
             this
             );

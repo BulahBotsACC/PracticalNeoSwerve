@@ -12,17 +12,21 @@ public class Intake extends SubsystemBase{
     private TalonFX bottomMotor;
 
     public Intake() {
-        topMotor = new TalonFX(Constants.IntakeConstants.TopMotorID,"Canivore");
-        bottomMotor = new TalonFX(Constants.IntakeConstants.BottomMotorID,"Canivore");
+        topMotor = new TalonFX(Constants.IntakeConstants.TopMotorID);
+        bottomMotor = new TalonFX(Constants.IntakeConstants.BottomMotorID);
     }
 
     private void setIntakeSpeed(double speed) {
         topMotor.set(speed);
-        bottomMotor.set(-speed);
+        bottomMotor.set(speed);
     }
 
     public Command On() {
         return Commands.runOnce(()->{setIntakeSpeed(Constants.IntakeConstants.IntakeSpeed);}, this);
+    }
+
+    public Command Reverse() {
+        return Commands.runOnce(()->{setIntakeSpeed(-Constants.IntakeConstants.IntakeSpeed);}, this);
     }
 
     public Command Off() {

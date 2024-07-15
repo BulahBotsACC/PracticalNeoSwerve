@@ -28,7 +28,7 @@ import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 public class RobotContainer {
 
     /* Controllers */
-    private final Joystick driver = new Joystick(0);
+    private final XboxController driver = new XboxController(0);
 
    /* Driver Controls */
 	private final int translationAxis = XboxController.Axis.kLeftY.value;
@@ -38,7 +38,15 @@ public class RobotContainer {
     /* Driver Buttons */
     private final JoystickButton zeroGyro = new JoystickButton(driver, XboxController.Button.kY.value);
 
-    private final JoystickButton dampen = new JoystickButton(driver, XboxController.Button.kRightBumper.value);
+    private final JoystickButton dampen = new JoystickButton(driver, XboxController.Button.kB.value);
+
+    private final JoystickButton xAim = new JoystickButton(driver, XboxController.Button.kX.value);
+
+    private final JoystickButton botOriented = new JoystickButton(driver, XboxController.Button.kLeftBumper.value);
+
+    private final JoystickButton pickup = new JoystickButton(driver, XboxController.Button.kRightBumper.value);
+
+    private final JoystickButton reversePickup = new JoystickButton(driver, XboxController.Button.kA.value);
 
     private final POVButton up = new POVButton(driver, 90);
     private final POVButton down = new POVButton(driver, 270);
@@ -50,7 +58,7 @@ public class RobotContainer {
     private final Intake s_Intake = new Intake();
 
     // Auton Selector
-    private SendableChooser<Command> autonSelector;
+    private SendableChooser<Command> autonSelector = new SendableChooser<Command>();
 
 
     /** The container for the robot. Contains subsystems, OI devices, and commands. */
@@ -61,7 +69,7 @@ public class RobotContainer {
                 () -> -driver.getRawAxis(translationAxis), 
                 () -> -driver.getRawAxis(strafeAxis), 
                 () -> -driver.getRawAxis(rotationAxis), 
-                () -> false,
+                () -> botOriented.getAsBoolean(),
                 () -> dampen.getAsBoolean(),
                 () -> 1 //speed multiplier 
             )
@@ -80,10 +88,14 @@ public class RobotContainer {
         // Create Pathplanner Autos
         PathPlannerPath DBAP = PathPlannerPath.fromChoreoTrajectory("NewPath");
         Command DBAPCommand = AutoBuilder.followPath(DBAP);
+        PathPlannerPath Test = PathPlannerPath.fromChoreoTrajectory("TestPath");
+        Command TestCommand = AutoBuilder.followPath(Test);
 
         // Auton Selector
+        autonSelector.addOption("Do Nothing", null);
         autonSelector.addOption("calibrate swerve module FF Constants", Commands.sequence(s_Swerve.sysIdDynamic(SysIdRoutine.Direction.kForward), Commands.waitSeconds(1), s_Swerve.sysIdDynamic(SysIdRoutine.Direction.kReverse), Commands.waitSeconds(1), s_Swerve.sysIdQuasistatic(SysIdRoutine.Direction.kForward), Commands.waitSeconds(1), s_Swerve.sysIdQuasistatic(SysIdRoutine.Direction.kReverse)));
         autonSelector.addOption("Drive Back and Pick Up", DBAPCommand);
+        autonSelector.addOption("Tets", TestCommand);
         SmartDashboard.putData("Auton Selector", autonSelector);
     }
 
@@ -115,6 +127,12 @@ public class RobotContainer {
             new InstantCommand(() -> States.driveState = States.DriveStates.d270)).onFalse(
             new InstantCommand(() -> States.driveState = States.DriveStates.standard)
             );
+        //xAim.onTrue(new XAim(s_Swerve)); 
+
+        pickup.onTrue(s_Intake.On());
+        pickup.onFalse(s_Intake.Off());
+        reversePickup.onTrue(s_Intake.Reverse());
+        reversePickup.onFalse(s_Intake.Off());
 
     }
 
