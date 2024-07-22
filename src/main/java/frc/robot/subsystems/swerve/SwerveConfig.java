@@ -68,7 +68,7 @@ public class SwerveConfig
     public static final double anglePeakCurrentDuration = 0.1;
     public static final boolean angleEnableCurrentLimit = true;
 
-    public static final int driveContinuousCurrentLimit = 35;
+    public static final int driveContinuousCurrentLimit = 40;
     public static final int drivePeakCurrentLimit = 60;
     public static final double drivePeakCurrentDuration = 0.1;
     public static final boolean driveEnableCurrentLimit = true;
@@ -98,9 +98,9 @@ public class SwerveConfig
 
     /* Swerve Profiling Values */
     /** Meters per Second */
-    public static final double maxSpeed = 4.5;
+    public static final double maxSpeed = 5;
     /** Radians per Second */
-    public static final double maxAngularVelocity = 4; //max 10 or.....
+    public static final double maxAngularVelocity = 6; //max 10 or.....
    
 
  

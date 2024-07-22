@@ -6,6 +6,7 @@ import com.pathplanner.lib.path.PathPlannerPath;
 
 import edu.wpi.first.wpilibj.GenericHID;
 import edu.wpi.first.wpilibj.Joystick;
+import edu.wpi.first.wpilibj.PWM;
 import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
@@ -36,11 +37,13 @@ public class RobotContainer {
 	private final int rotationAxis = XboxController.Axis.kRightX.value;
 
     /* Driver Buttons */
-    private final JoystickButton zeroGyro = new JoystickButton(driver, XboxController.Button.kY.value);
+    private final JoystickButton zeroGyro = new JoystickButton(driver, XboxController.Button.kStart.value);
 
     private final JoystickButton dampen = new JoystickButton(driver, XboxController.Button.kB.value);
 
     private final JoystickButton xAim = new JoystickButton(driver, XboxController.Button.kX.value);
+
+    private final JoystickButton disablePickup = new JoystickButton(driver, XboxController.Button.kY.value);
 
     private final JoystickButton botOriented = new JoystickButton(driver, XboxController.Button.kLeftBumper.value);
 
@@ -56,6 +59,9 @@ public class RobotContainer {
     /* Subsystems */
     private final Swerve s_Swerve = new Swerve();
     private final Intake s_Intake = new Intake();
+
+    /* LEDs */
+    PWM greenLED = new PWM(0);
 
     // Auton Selector
     private SendableChooser<Command> autonSelector = new SendableChooser<Command>();
@@ -75,9 +81,6 @@ public class RobotContainer {
             )
         );
 
-
-
-
         // Configure the button bindings
         configureButtonBindings();
 
@@ -95,8 +98,11 @@ public class RobotContainer {
         autonSelector.addOption("Do Nothing", null);
         autonSelector.addOption("calibrate swerve module FF Constants", Commands.sequence(s_Swerve.sysIdDynamic(SysIdRoutine.Direction.kForward), Commands.waitSeconds(1), s_Swerve.sysIdDynamic(SysIdRoutine.Direction.kReverse), Commands.waitSeconds(1), s_Swerve.sysIdQuasistatic(SysIdRoutine.Direction.kForward), Commands.waitSeconds(1), s_Swerve.sysIdQuasistatic(SysIdRoutine.Direction.kReverse)));
         autonSelector.addOption("Drive Back and Pick Up", DBAPCommand);
-        autonSelector.addOption("Tets", TestCommand);
+        autonSelector.addOption("Test", TestCommand);
         SmartDashboard.putData("Auton Selector", autonSelector);
+
+        //LEDs
+        greenLED.setAlwaysHighMode();
     }
 
     /**
@@ -127,10 +133,11 @@ public class RobotContainer {
             new InstantCommand(() -> States.driveState = States.DriveStates.d270)).onFalse(
             new InstantCommand(() -> States.driveState = States.DriveStates.standard)
             );
+        
         //xAim.onTrue(new XAim(s_Swerve)); 
 
-        pickup.onTrue(s_Intake.On());
-        pickup.onFalse(s_Intake.Off());
+        pickup.onTrue(s_Intake.Intake());
+        disablePickup.onTrue(s_Intake.Off());
         reversePickup.onTrue(s_Intake.Reverse());
         reversePickup.onFalse(s_Intake.Off());
 
